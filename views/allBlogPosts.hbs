@@ -1,1 +1,8 @@
 <h1>All Blogs Ever Made Ever</h1>
+<ul>
+  {{#each data}}
+    <a href="/blogPost/{{id}}">
+      <li>{{title}}</li>
+    </a>
+  {{/each}}
+<ul>
