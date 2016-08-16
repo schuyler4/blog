@@ -1,7 +1,6 @@
 const express = require('express')
 const app = express()
 const admin = express()
-const fs = require('fs')
 app.disable('x-powered-by');
 
 const exphbs = require('express-handlebars');
@@ -12,23 +11,13 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
 
-
 const secret = require('./secret.js')
-
 const mongoose = require('mongoose');
-let collection
+
 mongoose.connect('mongodb://localhost/blogdata', function(err) {
 	if(err)console.err(err)
 })
 mongoose.Promise = global.Promise;
-
-mongoose.connection.on('connected', function () {
-  console.log('Mongoose default connection open')
-})
-
-mongoose.connection.on('error',function (err) {
-  console.log('Mongoose default connection error: ' + err)
-})
 
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'))
@@ -43,12 +32,6 @@ var Comments = new Schema({
 	date: Date
 });
 
-const Grid = require("gridfs-stream");
-Grid.mongo = mongoose.mongo;
-let gfs;
-db.once("open", function() {
-	gfs = Grid(db.db)
-});
 const blogPostSchema = mongoose.Schema({
 	date: { type: Date, default: Date.now },
   title: String,
@@ -58,38 +41,17 @@ const blogPostSchema = mongoose.Schema({
 })
 let blogPost = mongoose.model('blogPost', blogPostSchema)
 
-const homePageSchema = mongoose.Schema({
-	title: String,
-	content: String
-})
-
-let homePageInfo = mongoose.model('homePageInfo', homePageSchema)
-
-const imageSchema = mongoose.Schema({
-	img:{ data: Buffer, contentType: String }
-})
-const Image = mongoose.model('Image', imageSchema)
-
-const multer = require('multer')
-
-var upload = multer({dest: "./uploads"});
-
-
 app.get('/', (req, res)=> {
-	 homePageInfo.findOne({'title':'Aboutme'}, function(err, data) {
-		console.log(data)
-		res.render('home',{data:data.content})
-	});
+	res.render('home')
 });
 
 app.get('/admin',(req, res)=> {
-	homePageInfo.findOne({'title':'Aboutme'}, function(err, data) {
-		res.render('addBlogPost',{data:data.content})
+	blogPost.find(function(err, data) {
+		res.render('addBlogPost',{data:data, title:data.title, id: data.id})
 	})
 })
 
 app.post('/admin', function(req, res) {
-	console.log("posting text")
 	let Post = new blogPost({
 		title:req.body.title,
 		content:req.body.blogContent//,
@@ -104,57 +66,6 @@ app.post('/admin', function(req, res) {
 	});
 	res.redirect('/')
 });
-let homePageAdded = false
-
-if(!homePageAdded) {
-	app.post('/addHomePage', function(req, res) {
-		var homePage = new homePageInfo({
-			title: "Aboutme",
-			content: req.body.aboutMe
-		})
-		homePage.save(function (err) {
-			if (!err) console.log('Success!');
-		})
-		res.redirect('/')
-		homePageAdded = true
-	});
-}
-else {
-	app.put('url', function(req, res) {
-
-        // use our bear model to find the bear we want
-        Bear.findById(req.params.bear_id, function(err, bear) {
-
-            if (err)
-                res.send(err);
-
-            bear.name = req.body.name;  // update the bears info
-
-            // save the bear
-            bear.save(function(err) {
-                if (err)
-                    res.send(err);
-
-                res.json({ message: 'Bear updated!' });
-            });
-
-        });
-    });
-}
-
-/*app.post('/editBlogPost', function(req, res) {
-	let query = {"_id":id}
-	let updateTitle = {$set:{title: req.body.title, content: req.body.content}
-	blogPost.findOneAndUpdate(query, update, {new: true}, function(err, update) {
-		if(err) {
-			console.log(err)
-		}
-		else {
-			res.redirect("/blogPost/"id)
-		}
-	})
-})*/
-
 
 let id;
 
@@ -165,8 +76,29 @@ app.get('/editBlogPost/:id', function(req, res) {
 	})
 })
 
-app.post('/deleteBlogPost', function(req, res) {
+app.post('/editBlogPost', function(req, res) {
+	let query = {"_id":id}
+	let update = {$set:{title: req.body.title, content: req.body.content}}
+	blogPost.findOneAndUpdate(query, update, {new: true}, function(err, update) {
+		if(err) {
+			console.log(err);
+		}
+		else {
+			res.redirect("/blogPost/" + id);
+		}
+	});
+});
 
+app.post('/deleteBlogPost', function(req, res) {
+	blogPost.remove({ _id: req.body.id }, function(err) {
+    if (!err) {
+          console.log("succsesfully deleted")
+    }
+    else {
+          console.log(err)
+    }
+	});
+	res.redirect('/admin')
 })
 
 app.get('/blogPost/:id', function(req, res){
