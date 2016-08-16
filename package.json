@@ -13,10 +13,19 @@
   "author": "Marek Newton",
   "license": "ISC",
   "dependencies": {
+    "busboy": "^0.2.13",
+    "connect-busboy": "0.0.2",
     "express": "^4.14.0",
     "express-handlebars": "^3.0.0",
+    "express-mongo-busboy": "^3.0.0",
+    "formidable": "^1.0.17",
+    "fs": "0.0.2",
+    "gridfs-stream": "^1.1.1",
     "handlebars": "^4.0.5",
     "mongoose": "^4.5.8",
-    "nodemon": "^1.10.0"
+    "multer": "^1.2.0",
+    "multiparty": "^4.1.2",
+    "nodemon": "^1.10.0",
+    "util": "^0.10.3"
   }
 }

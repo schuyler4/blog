@@ -1,5 +1,28 @@
 <form action="/admin" method="post">
 		<input type="text" name="title">
     <textarea type="text" name="blogContent"></textarea>
+		<p>	Image: <input type="file" name="upload"> </p>
     <button type="submit">submit</button>
+</form>
+{{#each data}}
+	<a href="/blogPost/{{id}}">
+		<li>{{title}}</li>
+	</a>
+	<a href="/editBlogPost/{{id}}">
+		<button>Edit</button>
+	</a>
+	<form action="/deleteBlogPost" method="post">
+		<button type="submit">Delete</button>
+	</form>
+{{/each}}
+
+<form action="/admin" method="post">
+	<input type="file" name="upload">
+	<button type="submit">submit</button>
+</form>
+
+<h1> Home Page Bio </h1>
+<form action="/addHomePage" method="post">
+	<textarea type="text" name="aboutMe">{{data}}</textarea>
+	<button type="submit">submit</button>
 </form>
